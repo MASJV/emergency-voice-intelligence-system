@@ -164,8 +164,6 @@ not guessed when unclear.
 
 ## ✨ Enhancements
 
-Beyond the base capstone requirements:
-
 - ✅ LangSmith tracing and observability across core processing stages
 - ✅ Audio speech-to-text evaluation using Word Error Rate (WER) with `jiwer`
 - ✅ AI-assessed incident severity derived from accumulated factual incident information
