@@ -36,7 +36,7 @@ def record_audio():
 def speech_to_text(audio):
     audio.seek(0)
 
-    transcript = client.audio.translations.create( # done right now english speech only
+    transcript = client.audio.translations.create(
         model="whisper-1",
         file=audio
     )

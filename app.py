@@ -6,11 +6,10 @@ import generate_report_recommendation
 import base64
 from langsmith import traceable
 
-st.set_page_config(page_title="AI Emergency Call Intelligence System")
+st.set_page_config(page_title="AI Emergency Voice Intelligence System")
 
 
-@traceable(name="emergency-call-intelligence-system")
-
+@traceable(name="emergency-voice-intelligence-system")
 def set_seamless_bg_with_sidebar_border(image_file):
     with open(image_file, "rb") as file:
         encoded_string = base64.b64encode(file.read())
@@ -30,21 +29,22 @@ def set_seamless_bg_with_sidebar_border(image_file):
         [data-testid="stSidebar"] {{
             background-color: transparent !important;
             background-image: none !important;
-            
+
             /* EXPLICIT SIDEBAR BORDERS & SEPARATION */
-            border-right: 2px solid rgba(255, 90, 69, 0.4) !important; /* Semi-transparent emergency red border */
-            box-shadow: 5px 0px 15px rgba(0, 0, 0, 0.5); /* Adds a subtle drop shadow to lift sidebar from content */
-            
-            /* Optional: Subtle dark tint overlay so text remains readable against the background image */
-            background-image: linear-gradient(rgba(18, 23, 42, 0.75), rgba(18, 23, 42, 0.75)) !important;
+            border-right: 2px solid rgba(255, 90, 69, 0.4) !important;
+            box-shadow: 5px 0px 15px rgba(0, 0, 0, 0.5);
+
+            /* Subtle dark tint overlay so text remains readable */
+            background-image: linear-gradient(
+                rgba(18, 23, 42, 0.75),
+                rgba(18, 23, 42, 0.75)
+            ) !important;
         }}
 
-        /* Ensure sidebar top header matches layout */
         [data-testid="stSidebarHeader"] {{
             background-color: transparent !important;
         }}
 
-        /* Core Application Styles & Theme Overrides */
         .stApp h1, .stApp h2, .stApp h3 {{
             border-bottom: 3px solid #FF5A45;
             padding-bottom: 0.35rem;
@@ -74,10 +74,11 @@ def set_seamless_bg_with_sidebar_border(image_file):
         unsafe_allow_html=True
     )
 
+
 set_seamless_bg_with_sidebar_border("assets/emergency_bg.png")
 
 st.markdown(
-    "<h1 style='text-align: center;'>🚨 AI Emergency Call Intelligence System</h1>",
+    "<h1 style='text-align: center;'>🚨 AI Emergency Voice Intelligence System</h1>",
     unsafe_allow_html=True,
 )
 
@@ -90,8 +91,7 @@ if "extracted_info" not in st.session_state:
         "location": "Unknown",
         "people_involved": "Unknown",
         "injuries": "Unknown",
-        "hazards": "Unknown",
-        "severity": "Unknown"
+        "severity": "Unknown",
     }
 
 if "followup_questions" not in st.session_state:
@@ -103,27 +103,38 @@ if "report" not in st.session_state:
 if "recommendation" not in st.session_state:
     st.session_state.recommendation = ""
 
+
 audio, duration = input_fetch_convert.record_audio()
 
 if audio is not None and st.button("Submit Recording"):
     with st.spinner("🎙️ Recording received — processing..."):
         query = input_fetch_convert.speech_to_text(audio)
 
-        if query: # call log in sidebar, future add-on
+        if query:  
             st.session_state.transcripts.append({
                 "text": query,
-                "duration": duration
+                "duration": duration,
             })
 
+            # Extract factual information from the latest caller message.
             current_info = extract_info.extract_info(query)
-            current_info, missing_fields = check_info_followup.check_missing_fields(
-                            current_info,
-                            st.session_state.extracted_info
-                        )
-            st.session_state.extracted_info = (current_info)
 
-            st.session_state.followup_questions = check_info_followup.ask_follow(missing_fields)
+            # Merge it with facts collected in previous turns.
+            merged_info, missing_fields = check_info_followup.check_missing_fields(
+                current_info,
+                st.session_state.extracted_info,
+            )
 
+            # Derive severity from the complete accumulated incident state.
+            # The caller never asked to choose a severity level.
+            merged_info["severity"] = extract_info.assess_severity(merged_info)
+
+            st.session_state.extracted_info = merged_info
+            st.session_state.followup_questions = check_info_followup.ask_follow(
+                missing_fields
+            )
+
+            # 4. Generate the final outputs once all factual required fields exist.
             if not st.session_state.followup_questions:
                 complete_transcript = " ".join(
                     item["text"]
@@ -152,8 +163,10 @@ if audio is not None and st.button("Submit Recording"):
     else:
         st.error("No speech could be detected.")
 
+
 for question in st.session_state.followup_questions:
     st.warning(question)
+
 
 with st.sidebar:
     st.markdown(
@@ -164,6 +177,7 @@ with st.sidebar:
     for item in st.session_state.transcripts:
         st.markdown(item["text"])
         st.caption(f"Audio duration: {item['duration']:.1f} seconds")
+
 
 st.header("📋 Extracted Info")
 st.json(st.session_state.extracted_info)
