@@ -6,6 +6,21 @@ for missing factual information, automatically assesses incident severity,
 and — once all required factual fields are known — produces a formal incident
 report and a short set of pre-arrival safety steps.
 
+## 🎥 Demo
+
+🔗 **Live Demo:** [Try the Emergency Voice Intelligence System](https://emergency-voice-intelligence-system.streamlit.app/)
+
+## 📸 Screenshots
+
+### Emergency Information Collection
+![Emergency Information Collection](assets/screenshot-1.png)
+
+### Structured Incident State
+![Structured Incident State](assets/screenshot-2.png)
+
+### Incident Report & Pre-arrival Recommendations
+![Incident Report and Recommendations](assets/screenshot-3.png)
+
 ## 🏗️ Architecture
 
 ```text
@@ -162,7 +177,7 @@ not guessed when unclear.
    `Critical Information Extracted`, `Dispatch and Response Summary`) and a
    3–6 step pre-arrival safety recommendation from the structured incident state.
 
-## ✨ Enhancements
+## ✨ Engineering Highlights
 
 - ✅ LangSmith tracing and observability across core processing stages
 - ✅ Audio speech-to-text evaluation using Word Error Rate (WER) with `jiwer`
